@@ -1,6 +1,7 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+#include "logger.h"
 #include "Types.h"
 #include "SceneModel.h"
 
@@ -25,11 +26,6 @@ void AddItem(Collection* collection, int category_id, u8* image, u32 image_size)
 	int w, h, c;
 	u8* image_buffer = stbi_load_from_memory(image, image_size, &w, &h, &c, STBI_rgb);
 	u32 image_buffer_size = w * h * c;
-
-	if (image_buffer_size != 421500) {
-		stbi_image_free(image_buffer);
-		return;
-	}
 
 	ItemModelList* item_list = &collection->item_list;
 	ItemModel* item_model = &item_list->items[item_list->num_items];

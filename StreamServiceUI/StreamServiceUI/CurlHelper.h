@@ -11,6 +11,7 @@ CURL* CURL_Init() {
 	CURL* curl_req = curl_easy_init();
 	curl_easy_setopt(curl_req, CURLOPT_TIMEOUT, 10);
 	curl_easy_setopt(curl_req, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl_req, CURLOPT_FAILONERROR, 1L);
 
 	return curl_req;
 }

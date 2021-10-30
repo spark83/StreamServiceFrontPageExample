@@ -465,6 +465,10 @@ int main(int argc, char* argv[]) {
 	SDLAppWindow* window;
 	GLRenderer* renderer;
 
+	logger_initConsoleLogger(NULL);
+	logger_initFileLogger("LOG.log", 1024 * 1024, 5);
+	logger_setLevel(LogLevel_ERROR);
+
 	main_page_collection = malloc(sizeof(Collection));
 	main_view_scene = malloc(sizeof(ViewScene));
 	window = malloc(sizeof(SDLAppWindow));
