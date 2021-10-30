@@ -7,4 +7,8 @@ How to build project
 VS 2019 required.
 Simply open .sln file and build.
 
-Exxecutable included inside of Executable folder
+Exxecutable included inside of Executable folder.
+
+Known Issues:
+1. Font s,t coordinates are not correct.
+2. One of the image file doesn't seem to exist in one of the given URL included in json file.
