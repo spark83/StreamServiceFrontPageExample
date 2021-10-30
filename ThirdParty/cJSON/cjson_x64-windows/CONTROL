@@ -1,0 +1,8 @@
+Package: cjson
+Version: 1.7.15
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 47b80331f0472c9e051e3f6a1dc1638b37874569e1bd7d0371e9fb42e2588641
+Description: Ultralightweight JSON parser in ANSI C
+Type: Port
