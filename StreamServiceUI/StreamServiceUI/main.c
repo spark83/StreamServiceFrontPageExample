@@ -357,8 +357,7 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 	
 	// Render quads.
 	// ----------------------------------------
-	gl_renderer->ApplyTileTexture(gl_renderer, 0);
-	gl_renderer->ApplyShader(*default_effect);
+	gl_renderer->BeginRenderTileQuad(gl_renderer, default_effect, 0); // Currently we only need tile 0 to render all our texture needs
 
 	mat4 ortho;
 	glm_ortho(0, (float)window->width, 0, (float)window->height, -1.0, 100, ortho);
@@ -400,6 +399,8 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 
 	// Render strings.
 	// ----------------------------------------
+	gl_renderer->BeginRenderString(gl_renderer);
+
 	ypos = window->height - main_view_scene->pos[1] - main_view_scene->y_nav_pos;
 	for (u16 i = 0; i < num_collections; ++i) {
 		ViewItemCollection* collection = &main_view_scene->main_scene.collections[i];

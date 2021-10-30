@@ -124,6 +124,8 @@ typedef struct _GLRenderer {
 
 	void (*Render) (struct _GLRenderer*, IndexedStaticMesh*);
 	void (*RenderQuad) (struct _GLRenderer*);
+
+	void (*BeginRenderTileQuad) (struct _GLRenderer*, GLShaderProgram*, s8);
 	void (*RenderTiledQuad) (struct _GLRenderer*, GLShaderProgram*,
 							 mat4,
 							 f32, f32,
@@ -131,6 +133,7 @@ typedef struct _GLRenderer {
 							 f32, f32,
 							 f32, f32,
 							 f32, f32);
+	void (*BeginRenderString) (struct _GLRenderer*);
 	void (*RenderString) (struct _GLRenderer*, mat4, char*, f32, f32, f32);
 
 	void (*ApplyShader) (GLShaderProgram);

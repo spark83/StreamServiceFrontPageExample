@@ -155,6 +155,11 @@ static void RenderQuad(GLRenderer* renderer) {
 	Render(renderer, &renderer->internal_quad_mesh);
 }
 
+static void BeginRenderTileQuad(struct _GLRenderer* renderer, GLShaderProgram* shader, s8 tile_id) {
+	ApplyShader(*shader);
+	ApplyTileTexture(renderer, tile_id);
+}
+
 static void RenderTiledQuad(GLRenderer* renderer, GLShaderProgram* shader,
 							mat4 ortho,
 							f32 tile_scale_x, f32 tile_scale_y,
@@ -171,15 +176,14 @@ static void RenderTiledQuad(GLRenderer* renderer, GLShaderProgram* shader,
 	RenderQuad(renderer);
 }
 
-static void RenderString(GLRenderer* renderer, mat4 ortho, char* str, f32 posx, f32 posy, f32 scale) {
-
-	u32 shader_handle = renderer->font_shader.handle;
+static void BeginRenderString(GLRenderer* renderer) {
 	ApplyShader(renderer->font_shader);
-
-	GLShaderProgram* shader = &renderer->font_shader;
-
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, renderer->font_texture.texture_id);
+}
+
+static void RenderString(GLRenderer* renderer, mat4 ortho, char* str, f32 posx, f32 posy, f32 scale) {
+	GLShaderProgram* shader = &renderer->font_shader;
 
 	while (*str) {
 		char c = *str;
@@ -307,7 +311,8 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 	renderer->ReleaseShader = ReleaseShader;
 	renderer->RenderString = RenderString;
 	renderer->RenderTiledQuad = RenderTiledQuad;
-
+	renderer->BeginRenderTileQuad = BeginRenderTileQuad;
+	renderer->BeginRenderString = BeginRenderString;
 	renderer->internal_quad_mesh = renderer->CreateIndexedStaticQuad();
 
 	renderer->info.max_tex_height = renderer->info.max_tex_width = MAX_TEXTURE_SIZE;
@@ -398,6 +403,8 @@ void ReleaseGLRenderer(GLRenderer* renderer) {
 	renderer->ReleaseShader = NULL;
 	renderer->RenderString = NULL;
 	renderer->RenderTiledQuad = NULL;
+	renderer->BeginRenderTileQuad = NULL;
+	renderer->BeginRenderString = NULL;
 
 	for (s32 i = 0; i < MAX_TILE_TEXTURES; ++i) {
 		glDeleteTextures(1, &renderer->tile_textures[i].texture_id);
