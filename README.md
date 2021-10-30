@@ -12,3 +12,8 @@ Exxecutable included inside of Executable folder.
 Known Issues:
 1. Font s,t coordinates are not correct.
 2. One of the image file doesn't seem to exist in one of the given URL included in json file.
+
+TODO:
+1. Custom allocators: Stack allocator, pool allocator, free allocator.
+2. Compress texture format into DXT1 for less memory usage in gpu.
+3. GUI scene into rendering commands.
