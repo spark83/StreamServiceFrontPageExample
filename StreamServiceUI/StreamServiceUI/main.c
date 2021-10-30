@@ -25,9 +25,7 @@
 #include "logger.h"
 #include "Types.h"
 
-// TODO: Reorgnaize this to only include header file.  Remove unity build.
-// I am temporailiy doing a unity build here for fast compilation.  
-// This will need to be organized in better way later but this is fine for now
+#include "Animation.h"
 #include "DefaultDatas.h"
 #include "DataTypes.h"
 #include "AppWindow.h"
@@ -63,6 +61,12 @@ typedef struct {
 	// TODO: Add different type of collection or sets
 	Collection* main_page_collection;
 	ViewScene* main_view_scene;
+
+	// Animation for scrolling and scaling.
+	NumberAnimation side_scroll_ani;
+	NumberAnimation vert_scroll_ani;
+	NumberAnimation item_scale_minimize_ani;
+	NumberAnimation item_scale_maximize_ani;
 
 	SceneNavigator navigator;
 } UpdateHelperContainer;
@@ -181,7 +185,6 @@ s32 ScaneLoadThread(void* data) {
 				cJSON* refid = cJSON_GetObjectItemCaseSensitive(cont_set, "refId");
 
 				if (cJSON_IsString(refid) && (refid->valuestring != NULL)) {
-					//mtx_lock(&g_collection_model_mutex);
 					ResetDataBuffer(&json_data_buffer);
 					size_t ref_id_len = strlen(refid->valuestring);
 					sprintf(curatedSets + ref_str_len, refid->valuestring);
@@ -203,9 +206,6 @@ s32 ScaneLoadThread(void* data) {
 				}
 			}
 
-			if (cJSON_IsString(content) && (content->valuestring != NULL)) {
-				//printf("%s\n", content->valuestring);
-			}
 			category_id++;
 		}
 	}
@@ -255,7 +255,8 @@ void UpdateNavigationViewScene(GLRenderer* gl_renderer, ViewScene* main_view_sce
 					view_item->height = item->height;
 					view_item->row = row_ind;
 					view_item->col = col_ind;
-					view_item->scalar = 0.5f;
+					view_item->bias_scale = 0.5f;
+					view_item->scalar = i == 0 ? 1.2f : 1.0f;
 				}
 
 				stbi_image_free(item->image_buffer);
@@ -285,10 +286,21 @@ void UpdateNavigationViewScene(GLRenderer* gl_renderer, ViewScene* main_view_sce
 	mtx_unlock(&g_collection_model_mutex);
 }
 
-void HandleInputEvents(ViewScene* main_view_scene, SceneNavigator* navigator, SDL_Keycode input_key) {
+void HandleInputEvents(UpdateHelperContainer* container, SDL_Keycode input_key) {
 	ViewItemCollection* collection;
 	u16 num_collections;
 	u16 num_items;
+	s16 itm_idx;
+	ViewItem* prev_item;
+	ViewItem* new_item;
+	s8 index_changed = 1;
+	ViewScene* main_view_scene = container->main_view_scene;
+	SceneNavigator* navigator = &container->navigator;
+
+	collection = &main_view_scene->main_scene.collections[navigator->collection_idx];
+	itm_idx = collection->start_idx + navigator->item_idx;
+	
+	prev_item = &main_view_scene->item_list.item_list[itm_idx];
 
 	switch (input_key) {
 	case SDLK_LEFT:
@@ -309,20 +321,42 @@ void HandleInputEvents(ViewScene* main_view_scene, SceneNavigator* navigator, SD
 
 	if (navigator->collection_idx < 0) {
 		navigator->collection_idx = 0;
+		index_changed = 0;
 	} else if (navigator->collection_idx >= num_collections) {
 		navigator->collection_idx = num_collections - 1;
+		index_changed = 0;
 	}
 
 	collection = &main_view_scene->main_scene.collections[navigator->collection_idx];
 	num_items = collection->num_items;
 
+
 	if (navigator->item_idx < 0) {
 		navigator->item_idx = 0;
+		index_changed = 0;
 	} else if (navigator->item_idx >= num_items) {
 		navigator->item_idx = num_items - 1;
+		index_changed = 0;
 	}
 
-	UpdateLocalPosition(main_view_scene, navigator);
+	if (index_changed) {
+		container->item_scale_minimize_ani.from = prev_item->scalar;
+		container->item_scale_minimize_ani.to = 1.0f;
+		container->item_scale_minimize_ani.value_pointer = &prev_item->scalar;
+		container->item_scale_minimize_ani.speed = 7.5f;
+		container->item_scale_minimize_ani.running = 1;
+	}
+
+	itm_idx = collection->start_idx + navigator->item_idx;
+	new_item = &main_view_scene->item_list.item_list[itm_idx];
+
+	container->item_scale_maximize_ani.from = new_item->scalar;
+	container->item_scale_maximize_ani.to = 1.2f;
+	container->item_scale_maximize_ani.value_pointer = &new_item->scalar;
+	container->item_scale_maximize_ani.speed = 7.5f;
+	container->item_scale_maximize_ani.running = 1;
+
+	UpdateLocalPosition(main_view_scene, navigator, &container->side_scroll_ani, &container->vert_scroll_ani);
 }
 
 s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
@@ -344,13 +378,22 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 				ret = 0;
 				break;
 			case SDL_KEYDOWN:
-				HandleInputEvents(main_view_scene, &container->navigator, e.key.keysym.sym);
+				HandleInputEvents(container, e.key.keysym.sym);
 				break;
 			default:
 				break;
 		}
 	}
 	
+	// Update animation.
+	// Since there is no need for complex animation, doing this in the
+	// rendering thread is ok for now. 
+	// ----------------------------------------
+	UpdateAnimation(&container->side_scroll_ani, container->timer.delta_time);
+	UpdateAnimation(&container->vert_scroll_ani, container->timer.delta_time);
+	UpdateAnimation(&container->item_scale_minimize_ani, container->timer.delta_time);
+	UpdateAnimation(&container->item_scale_maximize_ani, container->timer.delta_time);
+
 	// Do simple forward rendering here.
 	// ----------------------------------------
 	gl_renderer->BeginRender(gl_renderer);
@@ -378,20 +421,14 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 
 		for (u16 j = item_start; j < item_end; ++j) {
 			ViewItem* view_item = &item_list->item_list[j];
-			float scalar = 1.0f;
-			
-			u16 item_index = j - item_start;
-			if (i == navigator->collection_idx && item_index == navigator->item_idx) {
-				scalar = 1.2f;
-			}
 
 			gl_renderer->RenderTiledQuad(gl_renderer, default_effect, ortho,
 				view_item->width / tile_texture->max_width, view_item->height / tile_texture->max_width,
 				view_item->col, view_item->row,
-				view_item->width * view_item->scalar, view_item->height * view_item->scalar,
-				xpos, ypos, scalar, scalar);
+				view_item->width * view_item->bias_scale, view_item->height * view_item->bias_scale,
+				xpos, ypos, view_item->scalar, view_item->scalar);
 
-			xpos += view_item->width * view_item->scalar + item_offset;
+			xpos += view_item->width * view_item->bias_scale + item_offset;
 		}
 		
 		ypos -= collection_offset;
@@ -456,6 +493,14 @@ int main(int argc, char* argv[]) {
 	container.main_view_scene = main_view_scene;
 	container.navigator.item_idx = 0;
 	container.navigator.collection_idx = 0;
+	container.side_scroll_ani.value_pointer = NULL;
+	container.vert_scroll_ani.value_pointer = NULL;
+	container.item_scale_minimize_ani.value_pointer = NULL;
+	container.item_scale_maximize_ani.value_pointer = NULL;
+	container.side_scroll_ani.running = 0;
+	container.vert_scroll_ani.running = 0;
+	container.item_scale_minimize_ani.running = 0;
+	container.item_scale_maximize_ani.running = 0;
 
 	TickTimer(&container.timer);
 

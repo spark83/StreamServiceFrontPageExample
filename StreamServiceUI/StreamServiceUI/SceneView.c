@@ -3,6 +3,7 @@
 #include <cglm/cglm.h>
 
 #include "Types.h"
+#include "Animation.h"
 #include "SceneView.h"
 
 #ifdef __cplusplus
@@ -25,7 +26,8 @@ void InitViewScene(ViewScene* scene,
 	scene->pos_offset[1] = pos_offset_y;
 }
 
-void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator) {
+void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator,
+						 NumberAnimation* side_ani, NumberAnimation* vert_ani) {
 	f32 left_edge;
 	f32 right_edge;
 	f32 top_edge;
@@ -43,8 +45,8 @@ void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator) {
 	ViewItemCollection* collection = &collection_list->collections[collection_idx];
 	s16 itm_idx = navigator->item_idx + collection->start_idx;
 	ViewItem* item = &scene->item_list.item_list[itm_idx];
-	f32 item_width = item->width * item->scalar;
-	f32 item_height = item->height * item->scalar;
+	f32 item_width = item->width * item->bias_scale;
+	f32 item_height = item->height * item->bias_scale;
 	f32 item_half_width = item_width / 2.0f;
 	f32 item_half_height = item_height / 2.0f;
 
@@ -62,20 +64,38 @@ void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator) {
 
 	if (left_edge < -collection->pos[0]) {
 		f32 remain = left_edge;
-		collection->pos[0] = -(int)(remain / h_move_val) * h_move_val;
-	}
-	else if (right_edge > -collection->pos[0] + scene_width) {
+		side_ani->from = collection->pos[0];
+		side_ani->to = -(int)(remain / h_move_val) * h_move_val;
+		side_ani->value_pointer = &collection->pos[0];
+		side_ani->speed = 7.0f;
+		side_ani->running = 1;
+		//collection->pos[0] = -(int)(remain / h_move_val) * h_move_val;
+	} else if (right_edge > -collection->pos[0] + scene_width) {
 		f32 remain = right_edge - scene_width;
-		collection->pos[0] = -((int)(remain / h_move_val) + 1.0f) * h_move_val;
+		side_ani->from = collection->pos[0];
+		side_ani->to = -((int)(remain / h_move_val) + 1.0f) * h_move_val;
+		side_ani->value_pointer = &collection->pos[0];
+		side_ani->speed = 7.0f;
+		side_ani->running = 1;
+		//collection->pos[0] = -((int)(remain / h_move_val) + 1.0f) * h_move_val;
 	}
 
 	if (top_edge > scene->y_nav_pos + scene_height) {
 		f32 remain = bottom_edge - scene_height;
-		scene->y_nav_pos = (int)(remain / v_move_val + 1.0f) * v_move_val;
-	}
-	else if (bottom_edge < scene->y_nav_pos) {
+		side_ani->from = scene->y_nav_pos;
+		side_ani->to = (int)(remain / v_move_val + 1.0f) * v_move_val;
+		side_ani->value_pointer = &scene->y_nav_pos;
+		side_ani->speed = 7.0f;
+		side_ani->running = 1;
+		//scene->y_nav_pos = (int)(remain / v_move_val + 1.0f) * v_move_val;
+	} else if (bottom_edge < scene->y_nav_pos) {
 		f32 remain = bottom_edge;
-		scene->y_nav_pos = (int)(remain / v_move_val - 1.0f) * v_move_val;
+		side_ani->from = scene->y_nav_pos;
+		side_ani->to = (int)(remain / v_move_val - 1.0f) * v_move_val;
+		side_ani->value_pointer = &scene->y_nav_pos;
+		side_ani->speed = 7.0f;
+		side_ani->running = 1;
+		//scene->y_nav_pos = (int)(remain / v_move_val - 1.0f) * v_move_val;
 	}
 }
 

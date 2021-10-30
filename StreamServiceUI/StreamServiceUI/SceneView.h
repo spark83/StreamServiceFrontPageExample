@@ -15,6 +15,7 @@ typedef struct {
 	f32 width;
 	f32 height;
 	f32 scalar;
+	f32 bias_scale;
 	vec2 pos;
 } ViewItem;
 
@@ -58,7 +59,8 @@ void InitViewScene(ViewScene* scene,
 	f32 xpos, f32 ypos,
 	f32 pos_offset_x, f32 pos_offset_y);
 
-void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator);
+void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator,
+	NumberAnimation* side_ani, NumberAnimation* vert_ani);
 
 #ifdef __cplusplus
 }
