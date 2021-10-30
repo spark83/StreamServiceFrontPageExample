@@ -1,0 +1,84 @@
+#include <stdio.h>
+#include <string.h>
+#include <cglm/cglm.h>
+
+#include "Types.h"
+#include "SceneView.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void InitViewScene(ViewScene* scene,
+	f32 scene_width, f32 scene_height,
+	f32 item_offset, f32 collection_offset,
+	f32 xpos, f32 ypos,
+	f32 pos_offset_x, f32 pos_offset_y) {
+	memset(scene, 0, sizeof(ViewScene));
+	scene->width = scene_width;
+	scene->height = scene_height;
+	scene->item_offset = item_offset;
+	scene->collection_offset = collection_offset;
+	scene->pos[0] = xpos;
+	scene->pos[1] = ypos;
+	scene->pos_offset[0] = pos_offset_x;
+	scene->pos_offset[1] = pos_offset_y;
+}
+
+void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator) {
+	f32 left_edge;
+	f32 right_edge;
+	f32 top_edge;
+	f32 bottom_edge;
+	f32 h_move_val;
+	f32 v_move_val;
+	f32 ypos = scene->height - scene->pos[1];
+	f32 xpos = scene->pos[0];
+	f32 item_offset = scene->item_offset;
+	f32 scene_width = scene->width;
+	f32 scene_height = scene->height;
+
+	s16 collection_idx = navigator->collection_idx;
+	ViewItemCollectionList* collection_list = &scene->main_scene;
+	ViewItemCollection* collection = &collection_list->collections[collection_idx];
+	s16 itm_idx = navigator->item_idx + collection->start_idx;
+	ViewItem* item = &scene->item_list.item_list[itm_idx];
+	f32 item_width = item->width * item->scalar;
+	f32 item_height = item->height * item->scalar;
+	f32 item_half_width = item_width / 2.0f;
+	f32 item_half_height = item_height / 2.0f;
+
+	h_move_val = item_width + item_offset;
+	v_move_val = scene->collection_offset;
+
+	xpos += h_move_val * navigator->item_idx;
+	ypos -= v_move_val * navigator->collection_idx;
+
+	left_edge = xpos - item_half_width;
+	right_edge = xpos + item_half_width;
+
+	top_edge = ypos + item_half_height;
+	bottom_edge = ypos - item_half_height;
+
+	if (left_edge < -collection->pos[0]) {
+		f32 remain = left_edge;
+		collection->pos[0] = -(int)(remain / h_move_val) * h_move_val;
+	}
+	else if (right_edge > -collection->pos[0] + scene_width) {
+		f32 remain = right_edge - scene_width;
+		collection->pos[0] = -((int)(remain / h_move_val) + 1.0f) * h_move_val;
+	}
+
+	if (top_edge > scene->y_nav_pos + scene_height) {
+		f32 remain = bottom_edge - scene_height;
+		scene->y_nav_pos = (int)(remain / v_move_val + 1.0f) * v_move_val;
+	}
+	else if (bottom_edge < scene->y_nav_pos) {
+		f32 remain = bottom_edge;
+		scene->y_nav_pos = (int)(remain / v_move_val - 1.0f) * v_move_val;
+	}
+}
+
+#ifdef __cplusplus
+}
+#endif
