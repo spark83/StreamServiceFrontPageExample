@@ -267,6 +267,7 @@ void UpdateNavigationViewScene(GLRenderer* gl_renderer, ViewScene* main_view_sce
 				item->image_loaded = FALSE;
 			}
 		}
+		main_view_scene->item_list.num_items = main_page->item_list.num_items;
 
 		for (u16 i = 0; i < main_page->category_list.num_category; ++i) {
 			CategoryModel* cat_model = &main_page->category_list.catagories[i];
@@ -447,14 +448,16 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 	}
 
 	// Render selection.
-	ViewItemCollection* collection = &main_view_scene->main_scene.collections[navigator->collection_idx];
-	s16 itm_idx = collection->start_idx + navigator->item_idx;
-	ViewItem* new_item = &main_view_scene->item_list.item_list[itm_idx];
-	QuadItem* selection_item = &container->menu_selection;
-	gl_renderer->ApplyShader(*container->selection_effect);
-	gl_renderer->ApplyTexture(&selection_item->texture);
-	gl_renderer->RenderQuad(gl_renderer, container->selection_effect, ortho, selection_item->width, selection_item->height,
-		new_item->pos[0], new_item->pos[1], selection_item->scalar, selection_item->scalar, selection_item->opacity);
+	if (main_view_scene->item_list.num_items > 0) {
+		ViewItemCollection* collection = &main_view_scene->main_scene.collections[navigator->collection_idx];
+		s16 itm_idx = collection->start_idx + navigator->item_idx;
+		ViewItem* new_item = &main_view_scene->item_list.item_list[itm_idx];
+		QuadItem* selection_item = &container->menu_selection;
+		gl_renderer->ApplyShader(*container->selection_effect);
+		gl_renderer->ApplyTexture(&selection_item->texture);
+		gl_renderer->RenderQuad(gl_renderer, container->selection_effect, ortho, selection_item->width, selection_item->height,
+			new_item->pos[0], new_item->pos[1], selection_item->scalar, selection_item->scalar, selection_item->opacity);
+	}
 
 	// Render strings.
 	// ----------------------------------------
@@ -556,7 +559,7 @@ int main(int argc, char* argv[]) {
 	renderer->CreateTexture(&container.menu_selection.texture, image_buffer, width, height);
 	container.menu_selection.width = (f32)width;
 	container.menu_selection.height = (f32)height;
-	container.menu_selection.opacity = 0.9f;
+	container.menu_selection.opacity = 0.94f;
 	container.menu_selection.scalar = 0.6f;
 	stbi_image_free(image_buffer);
 
