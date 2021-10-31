@@ -8,7 +8,7 @@ extern "C" {
 typedef struct {
 	u64 curr_time;
 	u64 last_time;
-	f64 delta_time;
+	f32 delta_time;
 } Timer;
 
 void TickTimer(Timer* time);

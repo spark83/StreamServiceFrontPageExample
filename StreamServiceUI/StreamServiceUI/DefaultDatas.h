@@ -70,6 +70,32 @@ extern "C" {
 "	frag_out = vec4(color.r, color.r, color.r, color.r);\n"\
 "}";
 
+#define QUAD_VERTEX_SHADER_SRC "\n"\
+"#version 460 core\n"\
+"layout (location = 0) in vec3 vertex;\n"\
+"layout (location = 1) in vec2 uv;\n"\
+"out vec2 frag_uv;\n"\
+"uniform mat4 ortho;\n"\
+"uniform vec2 size_2d;\n"\
+"uniform vec2 pos_2d;\n"\
+"uniform vec2 scalar;\n"\
+"void main() {\n"\
+"   vec3 vtx = vertex * vec3(scalar, 1.0) * vec3(size_2d, 1.0);\n"\
+"   vec4 projected_vtx = ortho * (vec4(vtx, 1.0) + vec4(pos_2d, 0.0, 0.0));\n"\
+"   frag_uv = uv;\n"\
+"	gl_Position = projected_vtx;\n"\
+"}";
+
+#define QUAD_FRAGMENT_SHADER_SRC "\n"\
+"#version 460 core\n"\
+"out vec4 frag_out;\n"\
+"in vec2 frag_uv;\n"\
+"uniform float opacity;\n"\
+"uniform sampler2D image;\n"\
+"void main() {\n"\
+"	frag_out = texture(image, frag_uv) * opacity;\n"\
+"}";
+
 #ifdef __cplusplus
 }
 #endif

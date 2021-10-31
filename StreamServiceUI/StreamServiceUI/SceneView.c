@@ -4,6 +4,7 @@
 
 #include "Types.h"
 #include "Animation.h"
+#include "Renderer.h"
 #include "SceneView.h"
 
 #ifdef __cplusplus
@@ -69,7 +70,6 @@ void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator,
 		side_ani->value_pointer = &collection->pos[0];
 		side_ani->speed = 7.0f;
 		side_ani->running = 1;
-		//collection->pos[0] = -(int)(remain / h_move_val) * h_move_val;
 	} else if (right_edge > -collection->pos[0] + scene_width) {
 		f32 remain = right_edge - scene_width;
 		side_ani->from = collection->pos[0];
@@ -77,7 +77,6 @@ void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator,
 		side_ani->value_pointer = &collection->pos[0];
 		side_ani->speed = 7.0f;
 		side_ani->running = 1;
-		//collection->pos[0] = -((int)(remain / h_move_val) + 1.0f) * h_move_val;
 	}
 
 	if (top_edge > scene->y_nav_pos + scene_height) {
@@ -87,7 +86,6 @@ void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator,
 		side_ani->value_pointer = &scene->y_nav_pos;
 		side_ani->speed = 7.0f;
 		side_ani->running = 1;
-		//scene->y_nav_pos = (int)(remain / v_move_val + 1.0f) * v_move_val;
 	} else if (bottom_edge < scene->y_nav_pos) {
 		f32 remain = bottom_edge;
 		side_ani->from = scene->y_nav_pos;
@@ -95,7 +93,6 @@ void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator,
 		side_ani->value_pointer = &scene->y_nav_pos;
 		side_ani->speed = 7.0f;
 		side_ani->running = 1;
-		//scene->y_nav_pos = (int)(remain / v_move_val - 1.0f) * v_move_val;
 	}
 }
 

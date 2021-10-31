@@ -52,6 +52,10 @@ typedef struct {
 	f32 width, height;
 } FontCharacter;
 
+typedef struct {
+	u32 width, height;
+} TextureSize;
+
 // Append all texture into one texture as long as size permits it
 // and use that to display image using offset of the texture.
 typedef struct {
@@ -64,8 +68,8 @@ typedef struct {
 } TileTexture;
 
 typedef struct {
-	u32 width, height;
-} TextureSize;
+	u32 texture_id;
+} Texture;
 
 // These are the only uniforms being used.
 // No need to know if there is something more than this.
@@ -80,6 +84,7 @@ typedef enum {
 	UNIFORM_FONT_SIZE,
 	UNIFORM_TOP_LEFT,
 	UNIFORM_BOTTOM_RIGHT,
+	UNIFORM_OPACITY,
 	NUM_UNIFORM_SLOTS
 } UniformSlot;
 
@@ -91,7 +96,7 @@ typedef struct {
 
 typedef struct {
 	UniformSlot uniform;
-	GLint uniform_location;
+	s32 uniform_location;
 	const s8* name;
 } UniformInfo;
 
@@ -123,7 +128,9 @@ typedef struct _GLRenderer {
 	void (*EndRender) (struct _GLRenderer*);
 
 	void (*Render) (struct _GLRenderer*, IndexedStaticMesh*);
-	void (*RenderQuad) (struct _GLRenderer*);
+
+	void (*RenderQuad) (struct _GLRenderer*, GLShaderProgram*, 
+						mat4, f32, f32, f32, f32, f32, f32, f32);
 
 	void (*BeginRenderTileQuad) (struct _GLRenderer*, GLShaderProgram*, s8);
 	void (*RenderTiledQuad) (struct _GLRenderer*, GLShaderProgram*,
@@ -136,8 +143,11 @@ typedef struct _GLRenderer {
 	void (*BeginRenderString) (struct _GLRenderer*);
 	void (*RenderString) (struct _GLRenderer*, mat4, char*, f32, f32, f32);
 
+	void (*CreateTexture) (Texture*, u8*, s32, s32);
+
 	void (*ApplyShader) (GLShaderProgram);
 	void (*ApplyTileTexture) (struct _GLRenderer*, s8);
+	void (*ApplyTexture) (Texture*);
 
 	s32 (*AppendToTileTexture) (struct _GLRenderer*, s8, s8*);
 	s8 (*IsTileTextureFull) (struct _GLRenderer*, s8);

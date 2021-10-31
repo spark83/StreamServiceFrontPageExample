@@ -49,6 +49,14 @@ typedef struct {
 } ViewScene;
 
 typedef struct {
+	Texture texture;
+	f32 width, height;
+	f32 scalar;
+	f32 opacity;
+	vec2 pos;
+} QuadItem;
+
+typedef struct {
 	s16 item_idx;
 	s16 collection_idx;
 } SceneNavigator;

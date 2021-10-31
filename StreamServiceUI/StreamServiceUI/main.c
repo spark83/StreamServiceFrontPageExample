@@ -56,7 +56,9 @@ const TextureSize k_texture_sizes[MAX_TILE_TEXTURES] = {
 typedef struct {
 	Timer timer;
 	GLRenderer* renderer;
-	GLShaderProgram* default_effect;
+	GLShaderProgram* tile_effect;
+	GLShaderProgram* selection_effect;
+	QuadItem menu_selection;
 
 	// TODO: Add different type of collection or sets
 	Collection* main_page_collection;
@@ -67,6 +69,7 @@ typedef struct {
 	NumberAnimation vert_scroll_ani;
 	NumberAnimation item_scale_minimize_ani;
 	NumberAnimation item_scale_maximize_ani;
+	NumberAnimation select_scale_maximize_ani;
 
 	SceneNavigator navigator;
 } UpdateHelperContainer;
@@ -330,7 +333,6 @@ void HandleInputEvents(UpdateHelperContainer* container, SDL_Keycode input_key) 
 	collection = &main_view_scene->main_scene.collections[navigator->collection_idx];
 	num_items = collection->num_items;
 
-
 	if (navigator->item_idx < 0) {
 		navigator->item_idx = 0;
 		index_changed = 0;
@@ -345,6 +347,13 @@ void HandleInputEvents(UpdateHelperContainer* container, SDL_Keycode input_key) 
 		container->item_scale_minimize_ani.value_pointer = &prev_item->scalar;
 		container->item_scale_minimize_ani.speed = 7.5f;
 		container->item_scale_minimize_ani.running = 1;
+
+		container->menu_selection.scalar = 0.5f;
+		container->select_scale_maximize_ani.from = container->menu_selection.scalar;
+		container->select_scale_maximize_ani.to = 0.6f;
+		container->select_scale_maximize_ani.value_pointer = &container->menu_selection.scalar;
+		container->select_scale_maximize_ani.speed = 7.5f;
+		container->select_scale_maximize_ani.running = 1;
 	}
 
 	itm_idx = collection->start_idx + navigator->item_idx;
@@ -364,7 +373,7 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 	s8 ret = 1;
 	UpdateHelperContainer* container = (UpdateHelperContainer*)user;
 	GLRenderer* gl_renderer = container->renderer;
-	GLShaderProgram* default_effect = container->default_effect;
+	GLShaderProgram* tile_effect = container->tile_effect;
 	ViewScene* main_view_scene = container->main_view_scene;
 	SceneNavigator* navigator = &container->navigator;
 	
@@ -393,14 +402,15 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 	UpdateAnimation(&container->vert_scroll_ani, container->timer.delta_time);
 	UpdateAnimation(&container->item_scale_minimize_ani, container->timer.delta_time);
 	UpdateAnimation(&container->item_scale_maximize_ani, container->timer.delta_time);
-
+	UpdateAnimation(&container->select_scale_maximize_ani, container->timer.delta_time);
+	
 	// Do simple forward rendering here.
 	// ----------------------------------------
 	gl_renderer->BeginRender(gl_renderer);
 	
 	// Render quads.
 	// ----------------------------------------
-	gl_renderer->BeginRenderTileQuad(gl_renderer, default_effect, 0); // Currently we only need tile 0 to render all our texture needs
+	gl_renderer->BeginRenderTileQuad(gl_renderer, tile_effect, 0); // Currently we only need tile 0 to render all our texture needs
 
 	mat4 ortho;
 	glm_ortho(0, (float)window->width, 0, (float)window->height, -1.0, 100, ortho);
@@ -421,8 +431,10 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 
 		for (u16 j = item_start; j < item_end; ++j) {
 			ViewItem* view_item = &item_list->item_list[j];
+			view_item->pos[0] = xpos;
+			view_item->pos[1] = ypos;
 
-			gl_renderer->RenderTiledQuad(gl_renderer, default_effect, ortho,
+			gl_renderer->RenderTiledQuad(gl_renderer, tile_effect, ortho,
 				view_item->width / tile_texture->max_width, view_item->height / tile_texture->max_width,
 				view_item->col, view_item->row,
 				view_item->width * view_item->bias_scale, view_item->height * view_item->bias_scale,
@@ -433,6 +445,16 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 		
 		ypos -= collection_offset;
 	}
+
+	// Render selection.
+	ViewItemCollection* collection = &main_view_scene->main_scene.collections[navigator->collection_idx];
+	s16 itm_idx = collection->start_idx + navigator->item_idx;
+	ViewItem* new_item = &main_view_scene->item_list.item_list[itm_idx];
+	QuadItem* selection_item = &container->menu_selection;
+	gl_renderer->ApplyShader(*container->selection_effect);
+	gl_renderer->ApplyTexture(&selection_item->texture);
+	gl_renderer->RenderQuad(gl_renderer, container->selection_effect, ortho, selection_item->width, selection_item->height,
+		new_item->pos[0], new_item->pos[1], selection_item->scalar, selection_item->scalar, selection_item->opacity);
 
 	// Render strings.
 	// ----------------------------------------
@@ -465,6 +487,7 @@ int main(int argc, char* argv[]) {
 	SDLAppWindow* window;
 	GLRenderer* renderer;
 
+	// Setup logger
 	logger_initConsoleLogger(NULL);
 	logger_initFileLogger("LOG.log", 1024 * 1024, 5);
 	logger_setLevel(LogLevel_ERROR);
@@ -475,13 +498,17 @@ int main(int argc, char* argv[]) {
 	renderer = malloc(sizeof(GLRenderer));
 
 	UpdateHelperContainer container;
-	GLShaderSource shader_source;
-	GLShaderProgram default_shader_effect;
+	GLShaderSource tile_shader_source;
+	GLShaderSource select_shader_source;
+	GLShaderProgram tile_shader_effect;
+	GLShaderProgram selection_shader_effect;
 
 	mtx_init(&g_collection_model_mutex, mtx_plain);
 
-	shader_source.vertex_src = INDEXED_VERTEX_SHADER_SRC;
-	shader_source.fragment_src = INDEXED_FRAGMENT_SHADER_SRC;
+	tile_shader_source.vertex_src = INDEXED_VERTEX_SHADER_SRC;
+	tile_shader_source.fragment_src = INDEXED_FRAGMENT_SHADER_SRC;
+	select_shader_source.vertex_src = QUAD_VERTEX_SHADER_SRC;
+	select_shader_source.fragment_src = QUAD_FRAGMENT_SHADER_SRC;
 	vec4 clear_color = { 0.12f, 0.12f, 0.12f, 0.0f };
 
 	// Initalize main page collection model.
@@ -492,7 +519,8 @@ int main(int argc, char* argv[]) {
 	InitWindow(window, MAX_DEFAULT_WIN_WIDTH, MAX_DEFAULT_WIN_HEIGHT, FALSE, "Disney+", &container, OnScreenUpdate);
 
 	container.renderer = renderer;
-	container.default_effect = &default_shader_effect;
+	container.tile_effect = &tile_shader_effect;
+	container.selection_effect = &selection_shader_effect;
 	container.main_page_collection = main_page_collection;
 	container.main_view_scene = main_view_scene;
 	container.navigator.item_idx = 0;
@@ -501,10 +529,12 @@ int main(int argc, char* argv[]) {
 	container.vert_scroll_ani.value_pointer = NULL;
 	container.item_scale_minimize_ani.value_pointer = NULL;
 	container.item_scale_maximize_ani.value_pointer = NULL;
+	container.select_scale_maximize_ani.value_pointer = NULL;
 	container.side_scroll_ani.running = 0;
 	container.vert_scroll_ani.running = 0;
 	container.item_scale_minimize_ani.running = 0;
 	container.item_scale_maximize_ani.running = 0;
+	container.select_scale_maximize_ani.running = NULL;
 
 	TickTimer(&container.timer);
 
@@ -517,7 +547,18 @@ int main(int argc, char* argv[]) {
 	// Initalize renderer.
 	InitGLRenderer(renderer, k_texture_sizes);
 	renderer->SetClearColor(renderer, clear_color);
-	default_shader_effect = renderer->CompileShader(renderer, &shader_source);
+	tile_shader_effect = renderer->CompileShader(renderer, &tile_shader_source);
+	selection_shader_effect = renderer->CompileShader(renderer, &select_shader_source);
+
+	// Load selection image.
+	int width, height, channel;
+	stbi_uc* image_buffer = stbi_load("Selection.png", &width, &height, &channel, 4);
+	renderer->CreateTexture(&container.menu_selection.texture, image_buffer, width, height);
+	container.menu_selection.width = (f32)width;
+	container.menu_selection.height = (f32)height;
+	container.menu_selection.opacity = 0.9f;
+	container.menu_selection.scalar = 0.6f;
+	stbi_image_free(image_buffer);
 
 	thrd_join(&webservice_thread, NULL);
 

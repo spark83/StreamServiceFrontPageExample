@@ -11,7 +11,7 @@ void TickTimer(Timer* time) {
 	time->last_time = time->curr_time;
 	time->curr_time = SDL_GetPerformanceCounter();
 
-	time->delta_time = (f64)((time->curr_time - time->last_time)) / (f64)(SDL_GetPerformanceFrequency());
+	time->delta_time = (f32)((f64)((time->curr_time - time->last_time)) / (f64)(SDL_GetPerformanceFrequency()));
 }
 
 #ifdef __cplusplus

@@ -73,6 +73,11 @@ static const UniformInfo k_uniform_defs[NUM_UNIFORM_SLOTS] = {
 		.uniform = UNIFORM_BOTTOM_RIGHT,
 		.uniform_location = -1,
 		.name = "bottomright"
+	},
+	[UNIFORM_OPACITY] = {
+		.uniform = UNIFORM_OPACITY,
+		.uniform_location = -1,
+		.name = "opacity"
 	}
 };
 
@@ -151,7 +156,14 @@ static void Render(GLRenderer* renderer, IndexedStaticMesh* mesh) {
 	glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, 0);
 }
 
-static void RenderQuad(GLRenderer* renderer) {
+static void RenderQuad(GLRenderer* renderer, GLShaderProgram* shader,
+					   mat4 ortho, f32 size_x, f32 size_y, f32 pos_x, f32 pos_y,
+					   f32 scalar_x, f32 scalar_y, f32 opacity) {
+	glUniformMatrix4fv(shader->m_uniforms[UNIFORM_ORTHO].uniform_location, 1, GL_FALSE, (GLfloat*)ortho);
+	glUniform2f(shader->m_uniforms[UNIFORM_SIZE_2D].uniform_location, size_x, size_y);
+	glUniform2f(shader->m_uniforms[UNIFORM_POS_2D].uniform_location, pos_x, pos_y);
+	glUniform2f(shader->m_uniforms[UNIFORM_SCALAR].uniform_location, scalar_x, scalar_y);
+	glUniform1f(shader->m_uniforms[UNIFORM_OPACITY].uniform_location, opacity);
 	Render(renderer, &renderer->internal_quad_mesh);
 }
 
@@ -173,7 +185,7 @@ static void RenderTiledQuad(GLRenderer* renderer, GLShaderProgram* shader,
 	glUniform2f(shader->m_uniforms[UNIFORM_SIZE_2D].uniform_location, size_x, size_y);
 	glUniform2f(shader->m_uniforms[UNIFORM_POS_2D].uniform_location, pos_x, pos_y);
 	glUniform2f(shader->m_uniforms[UNIFORM_SCALAR].uniform_location, scalar_x, scalar_y);
-	RenderQuad(renderer);
+	Render(renderer, &renderer->internal_quad_mesh);
 }
 
 static void BeginRenderString(GLRenderer* renderer) {
@@ -199,7 +211,7 @@ static void RenderString(GLRenderer* renderer, mat4 ortho, char* str, f32 posx, 
 		glUniform2f(shader->m_uniforms[UNIFORM_POS_2D].uniform_location, posx, posy);
 		glUniform2f(shader->m_uniforms[UNIFORM_SCALAR].uniform_location, scale, scale);
 		posx += scale;
-		RenderQuad(renderer);
+		Render(renderer, &renderer->internal_quad_mesh);
 		++str;
 	}
 }
@@ -229,11 +241,29 @@ static s32 AppendToTileTexture(GLRenderer* renderer, s8 tile_id, s8* image_buffe
 	glTexSubImage2D(GL_TEXTURE_2D, 0, xoffset, yoffset,
 		renderer->tile_textures[tile_id].tile_width, renderer->tile_textures[tile_id].tile_height,
 		GL_RGB, GL_UNSIGNED_BYTE, image_buffer);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	renderer->tile_textures[tile_id].cur_num_tiles = next_num_tiles;
 	return next_num_tiles - 1;
+}
+
+static void CreateTexture(Texture* texture, u8* buffer, s32 width, s32 height) {
+	glGenTextures(1, &texture->texture_id);
+	glBindTexture(GL_TEXTURE_2D, texture->texture_id);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+		0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+static void ApplyTexture(Texture* texture) {
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture->texture_id);
 }
 
 static const TileTexture* GetTileTextureInfo(GLRenderer* renderer, s8 tile_id) {
@@ -313,8 +343,10 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 	renderer->RenderTiledQuad = RenderTiledQuad;
 	renderer->BeginRenderTileQuad = BeginRenderTileQuad;
 	renderer->BeginRenderString = BeginRenderString;
-	renderer->internal_quad_mesh = renderer->CreateIndexedStaticQuad();
+	renderer->CreateTexture = CreateTexture;
+	renderer->ApplyTexture = ApplyTexture;
 
+	renderer->internal_quad_mesh = renderer->CreateIndexedStaticQuad();
 	renderer->info.max_tex_height = renderer->info.max_tex_width = MAX_TEXTURE_SIZE;
 	u32 tex_size = renderer->info.max_tex_width;
 	u32 tex_buffer_size = tex_size * tex_size * 3;
@@ -364,9 +396,9 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 
 			// TODO: s, t values are bit off figure out why that is.
 			renderer->character_table[c].top = q.t0 + 0.003f; // Some hack alighn texture coordinate correctly
-			renderer->character_table[c].left = q.s0 + 0.003f;
+			renderer->character_table[c].left = q.s0 + 0.015f;
 			renderer->character_table[c].bottom = q.t1 + 0.003f;
-			renderer->character_table[c].right = q.s1 + 0.003f;
+			renderer->character_table[c].right = q.s1 + 0.015f;
 			renderer->character_table[c].width = q.s1 - q.s0;
 			renderer->character_table[c].height = q.t1 - q.t0;
 		}
