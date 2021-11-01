@@ -211,7 +211,7 @@ static void RenderString(GLRenderer* renderer, mat4 ortho, char* str, f32 posx, 
 		glUniformMatrix4fv(shader->m_uniforms[UNIFORM_ORTHO].uniform_location, 1, GL_FALSE, (GLfloat*)ortho);
 		glUniform2f(shader->m_uniforms[UNIFORM_POS_2D].uniform_location, posx, posy);
 		glUniform2f(shader->m_uniforms[UNIFORM_SCALAR].uniform_location, scale, scale);
-		posx += xadv;
+		posx += xadv * 0.5f + scale * 0.5f;
 		Render(renderer, &renderer->internal_quad_mesh);
 		++str;
 	}
