@@ -1,3 +1,8 @@
+/*
+ *! \brief Data buffer used for storing curl respond datas.
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #ifndef DATATYPES_H
 #define DATATYPES_H
 
@@ -6,8 +11,8 @@ extern "C" {
 #endif
 
 typedef struct {
-	u32 buffer_size;
-	u32 used_size;
+	u32 buffer_size;  // Total buffer size.
+	u32 used_size;    // Size currentlly in use.
 	s8* buffer;
 } DataBufferChunk;
 

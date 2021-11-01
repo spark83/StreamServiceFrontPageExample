@@ -1,3 +1,8 @@
+/*
+ *! \brief Implementation of animation functions.
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #include <math.h>
 #include "Types.h"
 #include "Animation.h"

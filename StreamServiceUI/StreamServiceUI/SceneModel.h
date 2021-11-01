@@ -1,3 +1,8 @@
+/*
+ *! \brief Scene model containing scene data parsed from json.
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #ifndef SCENEMODEL_H
 #define SCENEMODEL_H
 
@@ -14,7 +19,13 @@ typedef struct {
 	u16 category_index;
 	u16 width, height;
 	u32 image_buffer_size;
-	u8* image_buffer;
+
+	// RAW uncompressed image buffer.
+	// TODO: Replace dynamic memory allocation  with custom memory pool allocator
+	// (memory chucks with same sizes).  
+	// To reduce memory usage in GPU this buffer needs to be compressed in a GPU
+	// friendly format (DXT1).
+	u8* image_buffer;  
 } ItemModel;
 
 typedef struct {

@@ -1,3 +1,9 @@
+/*
+ *! \brief Helper functions that helps with libcurl initalization and 
+ *!        request.
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #ifndef CURLHELPER_H
 #define CURLHELPER_H
 
@@ -11,7 +17,7 @@ CURL* CURL_Init() {
 	CURL* curl_req = curl_easy_init();
 	curl_easy_setopt(curl_req, CURLOPT_TIMEOUT, 10);
 	curl_easy_setopt(curl_req, CURLOPT_FOLLOWLOCATION, 1L);
-	curl_easy_setopt(curl_req, CURLOPT_FAILONERROR, 1L);
+	curl_easy_setopt(curl_req, CURLOPT_FAILONERROR, 1L);  // Make sure to return failed response if request fails
 
 	return curl_req;
 }

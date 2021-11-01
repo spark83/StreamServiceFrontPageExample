@@ -1,3 +1,8 @@
+/*
+ *! \brief Data buffer used for storing curl respond datas.
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -9,6 +14,8 @@ extern "C" {
 #endif
 
 void InitlDataBuffer(DataBufferChunk* buffer, u32 size) {
+	// TODO: Add ability to use custom allocator instead of 
+	// using malloc here.
 	buffer->buffer_size = size;
 	buffer->used_size = 0;
 	buffer->buffer = (s8*)malloc(size);

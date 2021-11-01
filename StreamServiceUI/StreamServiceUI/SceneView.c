@@ -1,3 +1,9 @@
+/*
+ *! \brief Scene view model containing scene data that is translated and copied
+ *         from scene model data.
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #include <stdio.h>
 #include <string.h>
 #include <cglm/cglm.h>
@@ -63,6 +69,8 @@ void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator,
 	top_edge = ypos + item_half_height;
 	bottom_edge = ypos - item_half_height;
 
+	// Set side scrolling animation when currently selected item is outside of
+	// viewing window.
 	if (left_edge < -collection->pos[0]) {
 		f32 remain = left_edge;
 		side_ani->from = collection->pos[0];

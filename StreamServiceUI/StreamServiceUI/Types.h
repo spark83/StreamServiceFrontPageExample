@@ -1,3 +1,8 @@
+/*
+ *! \brief Types used throughout the code
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #ifndef TYPES_H
 #define TYPES_H
 
@@ -5,7 +10,7 @@
 #define NULL 0
 #endif
 
-#define EPSILON 0.00001
+#define EPSILON 1.192092896e-07F
 
 #ifdef __cplusplus
 extern "C" {

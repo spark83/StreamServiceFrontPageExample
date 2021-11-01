@@ -169,8 +169,8 @@ xcopy /y /d "..\..\ThirdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(OutDir)"
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="logger.c" />
-    <ClCompile Include="loggerconf.c" />
+    <ClCompile Include="Logging\logger.c" />
+    <ClCompile Include="Logging\loggerconf.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="Renderer.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -192,8 +192,8 @@ xcopy /y /d "..\..\ThirdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(OutDir)"
     <ClInclude Include="CurlHelper.h" />
     <ClInclude Include="DataTypes.h" />
     <ClInclude Include="JsonHelper.h" />
-    <ClInclude Include="logger.h" />
-    <ClInclude Include="loggerconf.h" />
+    <ClInclude Include="Logging\logger.h" />
+    <ClInclude Include="Logging\loggerconf.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="DefaultDatas.h" />
     <ClInclude Include="SceneModel.h" />

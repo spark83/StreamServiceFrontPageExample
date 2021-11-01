@@ -1,8 +1,14 @@
+/*
+ *! \brief Creates an application window, and provides update callback with
+ *		   system key input events.
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #include <gl\glew.h>
 #include <gl\gl.h>
 #include <gl\glu.h>
 #include <SDL.h>
-#include "logger.h"
+#include "Logging/logger.h"
 #include "Types.h"
 #include "AppWindow.h"
 
@@ -41,6 +47,8 @@ s8 InitWindow(SDLAppWindow* window, u16 width, u16 height, u8 fullscreen,
 		ret = 0;
 	}
 
+	// TODO: Update this to support lower versions of OpenGL ES since only OpenGLES
+	// are supported on setup boxes. 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);

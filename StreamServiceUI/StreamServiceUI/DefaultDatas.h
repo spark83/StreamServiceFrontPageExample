@@ -1,3 +1,8 @@
+/*
+ *! \brief Shader codes as #define strings 
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #ifndef DEFAULTDATAS_H
 #define DEFAULTDATAS_H
 
@@ -6,9 +11,10 @@ extern "C" {
 #endif
 
 // No need to load from file, we will only need few simple shaders to do the job.
-// I am trying to keep this shader as simple as possible but perhaps I will add in
-// orthographic projection later, so that each quads can rotate through a given
-// axis.
+// Note: I am trying to keep this shader as simple as possible to minimize branching,
+//       so if some of the rectangle needs to be rounded up, then perhaps rounded edge
+//       rectangle mesh will be used instead of using pixel shader to round the quad's
+//       edge.
 #define INDEXED_VERTEX_SHADER_SRC "\n"\
 "#version 460 core\n"\
 "layout (location = 0) in vec3 vertex;\n"\

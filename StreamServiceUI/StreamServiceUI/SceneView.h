@@ -1,3 +1,9 @@
+/*
+ *! \brief Scene view model containing scene data that is translated and copied
+ *         from scene model data.
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #ifndef SCENEVIEW_H
 #define SCENEVIEW_H
 
@@ -8,6 +14,7 @@ extern "C" {
 #define MAX_ITEM_MODELS_PER_SCREEN		256
 #define MAX_ITEM_CATEGORY_PER_SCREEN	32
 
+// Uses tile texture
 typedef struct {
 	s16 tile_id;
 	s16 tile_index;
@@ -48,6 +55,8 @@ typedef struct {
 	ViewItemList item_list;
 } ViewScene;
 
+// Uses single texture
+// Currently used for highlighting current item selection
 typedef struct {
 	Texture texture;
 	f32 width, height;
@@ -56,6 +65,7 @@ typedef struct {
 	vec2 pos;
 } QuadItem;
 
+// Used for navigating through the main view scene.
 typedef struct {
 	s16 item_idx;
 	s16 collection_idx;

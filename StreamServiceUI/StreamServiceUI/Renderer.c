@@ -1,3 +1,8 @@
+﻿/*
+ *! \brief Rendering related structures and functions
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #include <gl\glew.h>
 #include <gl\gl.h>
 #include <gl\glu.h>
@@ -6,7 +11,7 @@
 #include <cglm/cglm.h>
 
 #include "DefaultDatas.h"
-#include "logger.h"
+#include "Logging/logger.h"
 #include "Types.h"
 
 #include "Renderer.h"
@@ -81,6 +86,7 @@ static const UniformInfo k_uniform_defs[NUM_UNIFORM_SLOTS] = {
 	}
 };
 
+// TODO: Remove this when more optimized font generation is used.
 u8 temp_bitmap[512 * 512];
 u8 ttf_buffer[1 << 20];
 stbtt_bakedchar cdata[96];
@@ -90,9 +96,10 @@ static void SetClearColor(GLRenderer* renderer, vec4 color) {
 }
 
 static void BeginRender(GLRenderer* renderer) {
+	// TODO:
 	// Setup rendering commands
-	// Sort them by texture ids
-	// Push them into render queue
+	// Sort them by texture ids, shader types, etc
+	// Push them into render command queue
 
 	glClearColor(renderer->clearcolor[0],
 		renderer->clearcolor[1],
@@ -217,7 +224,7 @@ static void RenderString(GLRenderer* renderer, mat4 ortho, char* str, f32 posx, 
 	}
 }
 
-// This function assumes image_buffer passed in fits perfectly with the tile size
+// This function assumes image_buffer passed in fits with the defined tile size
 static s32 AppendToTileTexture(GLRenderer* renderer, s8 tile_id, s8* image_buffer) {
 	u32 row_ind;
 	u32 col_ind;
@@ -228,6 +235,7 @@ static s32 AppendToTileTexture(GLRenderer* renderer, s8 tile_id, s8* image_buffe
 	u32 next_num_tiles = renderer->tile_textures[tile_id].cur_num_tiles + 1;
 	
 	if (next_num_tiles > max_num_tiles) {
+		// There is not enough tile space in this texture, return -1.
 		LOG_ERROR("Tiled texture %d is full.\n", tile_id);
 		return -1;
 	}
@@ -239,6 +247,8 @@ static s32 AppendToTileTexture(GLRenderer* renderer, s8 tile_id, s8* image_buffe
 	yoffset = row_ind * renderer->tile_textures[tile_id].tile_height;
 
 	glBindTexture(GL_TEXTURE_2D, renderer->tile_textures[tile_id].texture_id);
+	// This will linkly stall in the lower end GPU, but this will only be called when new image is being added 
+	// or replaced with another image.  So it won't be reducing the performance much. 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, xoffset, yoffset,
 		renderer->tile_textures[tile_id].tile_width, renderer->tile_textures[tile_id].tile_height,
 		GL_RGB, GL_UNSIGNED_BYTE, image_buffer);
@@ -348,11 +358,24 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 	renderer->ApplyTexture = ApplyTexture;
 
 	renderer->internal_quad_mesh = renderer->CreateIndexedStaticQuad();
+	renderer->info.vender = glGetString(GL_VENDOR);
+	renderer->info.version = glGetString(GL_VERSION);
+	renderer->info.shading_language_version = glGetString(GL_SHADING_LANGUAGE_VERSION);
+	renderer->info.renderer = glGetString(GL_RENDERER);
+
+	// Set the max texture size to 8192 for now but this needs to be 4096 or lower to support
+	// lower end GPUs.
 	renderer->info.max_tex_height = renderer->info.max_tex_width = MAX_TEXTURE_SIZE;
+
 	u32 tex_size = renderer->info.max_tex_width;
 	u32 tex_buffer_size = tex_size * tex_size * 3;
 
-	// Create a image cache.
+	// Create a texture cache.
+	// This cache texxture is used for storing images (same size) that needs to be rendered
+	// as a set/collections on a screen.
+	// Binding a texture and then rendering them one at a time will cause slow down, so 
+	// by storing all the small same sized texture into one big texture and then binding 
+	// this texture before rendering them will result in better rendering performance.
 	for (s32 i = 0; i < MAX_TILE_TEXTURES; ++i) {
 		renderer->tile_textures[i].cur_num_tiles = 0;
 
@@ -364,6 +387,8 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 		renderer->tile_textures[i].num_rows = tex_size / renderer->tile_textures[i].tile_height;
 		renderer->tile_textures[i].num_cols = tex_size / renderer->tile_textures[i].tile_width;
 
+		// TODO: Use 32 bit texture to make the image fit into cache-lines and also use 
+		// compression to save memory usage.
 		glGenTextures(1, tex_id);
 		glBindTexture(GL_TEXTURE_2D, *tex_id);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_size, tex_size,
@@ -373,7 +398,6 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 
 	// Load font texture first
 	memset(renderer->character_table, 0, sizeof(renderer->character_table));
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	FILE* file = fopen("Square.otf", "rb");
 	if (file) {
 		// TODO: Use optimized font generation.
@@ -425,7 +449,6 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 	// Compile font shader.
 	renderer->font_shader = CompileShader(renderer, &source);
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }

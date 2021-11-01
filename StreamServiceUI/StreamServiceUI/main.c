@@ -1,3 +1,15 @@
+/*
+ *! \brief Main file that implements resource loading and rendering logic
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
+
+/*
+ Notes:  This application appends images (same size) into a one big texture and use that to render by indexing into the
+		 specific location that the image is stored in.  Image replacement when an image can no longer be stored into 
+		 the big texture, is not yet immplemmented, nor storing that immage into another big texture buffer.
+ */
+
 #define _CRT_SECURE_NO_DEPRECATE
 #define CURL_STATICLIB
 #define STB_IMAGE_IMPLEMENTATION
@@ -22,7 +34,7 @@
 #include <tinycthread.h>
 #include <cglm/cglm.h>
 
-#include "logger.h"
+#include "Logging/logger.h"
 #include "Types.h"
 
 #include "Animation.h"
@@ -102,7 +114,11 @@ void JSON_ParseAndAddItem(CURL* curl_req, cJSON* items,
 			if (!CURL_ParseIntoDataBuffer(curl_req, url->valuestring, data_buffer, callback)) {
 				LOG_ERROR("Parse into buffer failed");
 			} else {
-				// TODO: Save as a file instead and render thread to load that file instead?
+				// TODO: Replace this with scene update message queue.
+				// Note: Each thread will have scene update queue and when it is time to update, 
+				// queue's data will be copied to another queue located in the other thread.
+				// Although this will increase memory usage bit higher, this will maximize each thread's
+				// cpu usage without much waiting.
 				mtx_lock(&g_collection_model_mutex);
 				AddItem(main_page, category_id, data_buffer->buffer, data_buffer->buffer_size);
 				mtx_unlock(&g_collection_model_mutex);
@@ -398,6 +414,20 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 	UpdateAnimation(&container->item_scale_maximize_ani, container->timer.delta_time);
 	UpdateAnimation(&container->select_scale_maximize_ani, container->timer.delta_time);
 	
+	// TODO:
+	// Update the rendering logic by adding in render command list later.  This render commands will be sorted by texture types,
+	// shader types, being used, etc.  And then render them in order.
+	// Ex.
+	// 1. Bind texture 1.
+	// 2. Bind shader type 1.
+	// 3. Render stuff.....
+	// 4. Bind texture 2.
+	// 5. Render stuff.....
+	// 6. Bind shader type 2.
+	// 7. Render stuff.....
+	// 8. Bind font type
+	// 9. Render strings...
+
 	// Do simple forward rendering here.
 	// ----------------------------------------
 	gl_renderer->BeginRender(gl_renderer);
@@ -534,8 +564,8 @@ int main(int argc, char* argv[]) {
 
 	TickTimer(&container.timer);
 
-	// TODO: Create these into some type of thread pool and reuse them when necessary
-	// Use cases for thread pool will be:
+	// TODO: Create these into some type of worker thread pool and reuse them when necessary
+	// Use cases for worker thread will be:
 	// - When entire set needs to be refreshed.
 	// - Other type of resource loading needs to be done.
 	thrd_create(&webservice_thread, ScaneLoadThread, main_page_collection);

@@ -1,3 +1,8 @@
+/*
+ *! \brief Helper functions for json parsing stuff.
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #ifndef JSONHELPER_H
 #define JSONHELPER_H
 

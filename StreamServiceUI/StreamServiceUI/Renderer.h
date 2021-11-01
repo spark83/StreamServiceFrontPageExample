@@ -1,6 +1,14 @@
+/*
+ *! \brief Rendering related structures and functions
+ *! \author Sang Park
+ *! \date Oct 2021
+ */
 #ifndef RENDERER_H
 #define RENDERER_H
 
+// TODO: Increase number of tile textures and decrease size of that tile texture.  8192x8192 max texture size 
+// won't be supported in lower end hardwares, so more tile texture will be needed to store some of those textures.
+// 
 #define MAX_TILE_TEXTURES  1
 #define MAX_TEXTURE_SIZE   8192 //4096
 #define MAX_NUM_CHARACTERS 128
@@ -22,7 +30,7 @@ typedef struct {
 } IndexedQuadMeshData;
 
 // Some generic opengl info stuff to make sure which version to use
-// currently uses opengl 3.2 
+// currently uses opengl 4.6
 // Nothing is done here for now other than getting the info.
 // TODO: Based on the info gathered from here, use supported opengl
 // version later.
@@ -30,6 +38,7 @@ typedef struct {
 	s8* vender;
 	s8* version;
 	s8* shading_language_version;
+	s8* renderer;
 
 	u32 max_tex_width;
 	u32 max_tex_height;
@@ -58,7 +67,7 @@ typedef struct {
 } TextureSize;
 
 // Append all texture into one texture as long as size permits it
-// and use that to display image using offset of the texture.
+// and use that to display image using index of the texture.
 typedef struct {
 	u32 texture_id;
 	u32 tile_width, tile_height;
@@ -110,6 +119,8 @@ typedef struct _GLRenderer {
 	GLInfoData info;
 	vec4 clearcolor;
 
+	// Stores same sized images into one texture as long as there
+	// is an enough space for it.
 	u8 num_tile_textures;
 	TileTexture tile_textures[MAX_TILE_TEXTURES];
 
