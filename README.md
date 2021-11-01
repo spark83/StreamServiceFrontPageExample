@@ -1,7 +1,7 @@
 # StreamServiceFrontPageExample
 Streaming service main page display written in C and OpenGL
 
-![image](https://user-images.githubusercontent.com/9837282/139631844-6c1818b6-6196-4786-8dcb-2dd57dc845a2.png)
+![image](https://user-images.githubusercontent.com/9837282/139688160-16610f10-1bf4-4723-adee-f18fc7f0f5ba.png)
 
 How to build project
 VS 2019 required.
