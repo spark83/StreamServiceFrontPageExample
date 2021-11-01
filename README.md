@@ -11,6 +11,7 @@ Exxecutable included inside of Executable folder.
 
 Known Issues:
 1. Not all font scaling is correct.
+2. Font advance offset is bit off.
 
 TODO:
 1. Custom allocators: Stack allocator, pool allocator, free allocator.
