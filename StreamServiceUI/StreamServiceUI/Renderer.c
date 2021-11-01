@@ -203,6 +203,7 @@ static void RenderString(GLRenderer* renderer, mat4 ortho, char* str, f32 posx, 
 		f32 left = renderer->character_table[c].left;
 		f32 bottom = renderer->character_table[c].bottom;
 		f32 right = renderer->character_table[c].right;
+		f32 xadv = renderer->character_table[c].xadv;
 
 		glUniform1f(shader->m_uniforms[UNIFORM_FONT_SIZE].uniform_location, scale);
 		glUniform2f(shader->m_uniforms[UNIFORM_TOP_LEFT].uniform_location, left, top);
@@ -210,7 +211,7 @@ static void RenderString(GLRenderer* renderer, mat4 ortho, char* str, f32 posx, 
 		glUniformMatrix4fv(shader->m_uniforms[UNIFORM_ORTHO].uniform_location, 1, GL_FALSE, (GLfloat*)ortho);
 		glUniform2f(shader->m_uniforms[UNIFORM_POS_2D].uniform_location, posx, posy);
 		glUniform2f(shader->m_uniforms[UNIFORM_SCALAR].uniform_location, scale, scale);
-		posx += scale;
+		posx += xadv;
 		Render(renderer, &renderer->internal_quad_mesh);
 		++str;
 	}
@@ -373,7 +374,7 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 	// Load font texture first
 	memset(renderer->character_table, 0, sizeof(renderer->character_table));
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	FILE* file = fopen("squre_stone.ttf", "rb");
+	FILE* file = fopen("Square.otf", "rb");
 	if (file) {
 		fread(ttf_buffer, 1, 1 << 20, file);
 		stbtt_BakeFontBitmap(ttf_buffer, 0, 32.0f, temp_bitmap, 512, 512, 32, 96, cdata);
@@ -392,15 +393,20 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 		for (s32 c = 32; c < 128; ++c) {
 			f32 x, y;
 			stbtt_aligned_quad q;
-			stbtt_GetBakedQuad(cdata, 512, 512, c - 32, &x, &y, &q, 1);
+			s32 index = c - 32;
+			f32 x_adv = cdata[index].xadvance;
+			f32 xoff = cdata[index].xoff;
+			f32 yoff = cdata[index].yoff;
+			
+			stbtt_GetBakedQuad(cdata, 512, 512, index, &x, &y, &q, 1);
 
-			// TODO: s, t values are bit off figure out why that is.
-			renderer->character_table[c].top = q.t0 + 0.003f; // Some hack alighn texture coordinate correctly
-			renderer->character_table[c].left = q.s0 + 0.015f;
-			renderer->character_table[c].bottom = q.t1 + 0.003f;
-			renderer->character_table[c].right = q.s1 + 0.015f;
+			renderer->character_table[c].top = q.t0; 
+			renderer->character_table[c].left = q.s0;
+			renderer->character_table[c].bottom = q.t1;
+			renderer->character_table[c].right = q.s1;
 			renderer->character_table[c].width = q.s1 - q.s0;
 			renderer->character_table[c].height = q.t1 - q.t0;
+			renderer->character_table[c].xadv = x_adv;
 		}
 		fclose(file);
 	}

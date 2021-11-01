@@ -276,13 +276,6 @@ void UpdateNavigationViewScene(GLRenderer* gl_renderer, ViewScene* main_view_sce
 			collection->end_idx = cat_model->end_index;
 			collection->num_items = collection->end_idx - collection->start_idx;
 			memcpy(collection->name, cat_model->name, sizeof(collection->name));
-
-			// This is a hack.  stb_font not giving correct s,t coordinate somehow.
-			// I must be doing something wrong.  Until I figure that out.
-			// below code just converts all upper case letter to lower case.
-			for (u16 j = 0; j < 64; ++j) {
-				collection->name[j] = tolower(collection->name[j]);
-			}
 		}
 
 		main_view_scene->main_scene.num_collections = main_page->category_list.num_category;

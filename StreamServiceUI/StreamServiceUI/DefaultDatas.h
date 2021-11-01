@@ -50,9 +50,8 @@ extern "C" {
 "uniform vec2 bottomright;\n"\
 "uniform vec2 scalar;\n"\
 "void main() {\n"\
-"    vec2 frag_coord = uv - topleft;\n"\
-"	 vec2 uv_scalar = bottomright - topleft;\n"\
-"    frag_coord *= uv_scalar;\n"\
+"    vec2 size = bottomright - topleft;\n"\
+"    vec2 frag_coord = uv * size;\n"\
 "    frag_coord += topleft;\n"\
 "    frag_uv = frag_coord;\n"\
 "    vec3 vtx = vertex * vec3(scalar, 1.0);\n"\

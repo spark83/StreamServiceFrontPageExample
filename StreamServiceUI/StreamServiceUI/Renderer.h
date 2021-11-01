@@ -50,6 +50,7 @@ typedef struct {
 	f32 top, left;
 	f32 bottom, right;
 	f32 width, height;
+	f32 xadv;
 } FontCharacter;
 
 typedef struct {
