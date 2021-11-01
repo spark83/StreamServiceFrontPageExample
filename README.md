@@ -9,6 +9,9 @@ Simply open .sln file and build.
 
 Exxecutable included inside of Executable folder.
 
+Known Issues:
+1. Not all font scaling is correct.
+
 TODO:
 1. Custom allocators: Stack allocator, pool allocator, free allocator.
 2. Compress texture format into DXT1 for less memory usage in gpu.
