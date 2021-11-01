@@ -254,6 +254,12 @@ void UpdateNavigationViewScene(GLRenderer* gl_renderer, ViewScene* main_view_sce
 			ItemModel* item = &main_page->item_list.items[i];
 			ViewItem* view_item = &main_view_scene->item_list.item_list[i];
 			if (item->image_loaded && !item->image_loaded_in_gpu) {
+
+				// Currently there is only one tile texture that's big enough to fit all the images from
+				// k_bamgridUrl.  However, this will need to be updated so when this texture gets full,
+				// another tile texture can be used to append images.
+				// Also there are limited number of textures shown on screen, so some of them can also be
+				// replaced with the one that needs to be seen on screen.
 				s32 index = gl_renderer->AppendToTileTexture(gl_renderer, 0, item->image_buffer);
 				const TileTexture* tile_texture_info = gl_renderer->GetTileTextureInfo(gl_renderer, 0);
 
@@ -444,6 +450,7 @@ s8 OnScreenUpdate(SDLAppWindow* window, void* user) {
 	const f32 collection_offset = main_view_scene->collection_offset;
 	const TileTexture* tile_texture = gl_renderer->GetTileTextureInfo(gl_renderer, 0);
 
+	// TODO: Add box culling here to not render items that are outside of view screen.
 	f32 ypos = window->height - main_view_scene->pos[1] - main_view_scene->y_nav_pos;
 	for (u16 i = 0; i < num_collections; ++i) {
 		ViewItemCollection* collection = &main_view_scene->main_scene.collections[i];
