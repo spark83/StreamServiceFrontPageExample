@@ -376,6 +376,13 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	FILE* file = fopen("Square.otf", "rb");
 	if (file) {
+		// TODO: Use optimized font generation.
+		// #include "stb_rect_pack.h"
+		// stbtt_PackBegin()
+		// stbtt_PackSetOversampling()
+		// stbtt_PackFontRanges()
+		// stbtt_PackEnd()
+		// stbtt_GetPackedQuad()
 		fread(ttf_buffer, 1, 1 << 20, file);
 		stbtt_BakeFontBitmap(ttf_buffer, 0, 32.0f, temp_bitmap, 512, 512, 32, 96, cdata);
 		glGenTextures(1, &fontid);
