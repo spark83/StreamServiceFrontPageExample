@@ -16,3 +16,4 @@ TODO:
 1. Custom allocators: Stack allocator, pool allocator, free allocator.
 2. Compress texture format into DXT1 for less memory usage in gpu.
 3. GUI scene into rendering commands that gets sorted.
+4. Use optimized font generation.
