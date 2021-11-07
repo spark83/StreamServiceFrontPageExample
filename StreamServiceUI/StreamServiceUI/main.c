@@ -352,8 +352,11 @@ void HandleInputEvents(UpdateHelperContainer* container, SDL_Keycode input_key) 
 	if (navigator->item_idx < 0) {
 		navigator->item_idx = 0;
 		index_changed = 0;
-	} else if (navigator->item_idx >= num_items) {
+	} else if (navigator->item_idx >= num_items && num_items != 0) {
 		navigator->item_idx = num_items - 1;
+		index_changed = 0;
+	} else if (navigator->item_idx >= num_items && num_items == 0) {
+		navigator->collection_idx--;
 		index_changed = 0;
 	}
 
