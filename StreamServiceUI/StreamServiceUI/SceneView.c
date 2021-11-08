@@ -93,8 +93,6 @@ void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator,
 		side_ani->running = 1;
 	}
 
-	printf("shift idx: %d \n", collection->shift_idx);
-
 	if (top_edge > scene->y_nav_pos + scene_height) {
 		f32 remain = bottom_edge - scene_height;
 		side_ani->from = scene->y_nav_pos;
