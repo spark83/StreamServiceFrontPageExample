@@ -156,7 +156,7 @@ xcopy /y /d "..\..\ThirdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(OutDir)"
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="Animation.c" />
     <ClCompile Include="AppWindow.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -187,6 +187,7 @@ xcopy /y /d "..\..\ThirdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(OutDir)"
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AllocUtils.h" />
     <ClInclude Include="Animation.h" />
     <ClInclude Include="AppWindow.h" />
     <ClInclude Include="CurlHelper.h" />
