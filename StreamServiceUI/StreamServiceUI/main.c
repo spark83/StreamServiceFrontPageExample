@@ -310,6 +310,9 @@ void HandleInputEvents(UpdateHelperContainer* container, SDL_Keycode input_key) 
 	u16 num_collections;
 	u16 num_items;
 	s16 itm_idx;
+	s16 prev_shift_idx;
+	s16 curr_shift_idx;
+	s8 collection_moved;
 	ViewItem* prev_item;
 	ViewItem* new_item;
 	s8 index_changed = 1;
@@ -318,6 +321,9 @@ void HandleInputEvents(UpdateHelperContainer* container, SDL_Keycode input_key) 
 
 	collection = &main_view_scene->main_scene.collections[navigator->collection_idx];
 	itm_idx = collection->start_idx + navigator->item_idx;
+
+	prev_shift_idx = collection->shift_idx;
+	collection_moved = 0;
 	
 	prev_item = &main_view_scene->item_list.item_list[itm_idx];
 
@@ -330,9 +336,11 @@ void HandleInputEvents(UpdateHelperContainer* container, SDL_Keycode input_key) 
 		break;
 	case SDLK_UP:
 		navigator->collection_idx--;
+		collection_moved = 1;
 		break;
 	case SDLK_DOWN:
 		navigator->collection_idx++;
+		collection_moved = 1;
 		break;
 	}
 
@@ -348,6 +356,11 @@ void HandleInputEvents(UpdateHelperContainer* container, SDL_Keycode input_key) 
 
 	collection = &main_view_scene->main_scene.collections[navigator->collection_idx];
 	num_items = collection->num_items;
+	curr_shift_idx = collection->shift_idx;
+
+	if (collection_moved) {
+		navigator->item_idx = navigator->item_idx - prev_shift_idx + curr_shift_idx;
+	}
 
 	if (navigator->item_idx < 0) {
 		navigator->item_idx = 0;

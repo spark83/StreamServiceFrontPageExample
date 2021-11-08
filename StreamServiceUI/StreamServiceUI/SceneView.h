@@ -36,6 +36,7 @@ typedef struct {
 	s8 name[64];
 	s16 start_idx, end_idx;
 	u16 num_items;
+	s16 shift_idx;
 } ViewItemCollection;
 
 typedef struct {

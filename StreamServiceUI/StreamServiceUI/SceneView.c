@@ -73,6 +73,9 @@ void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator,
 	// viewing window.
 	if (left_edge < -collection->pos[0]) {
 		f32 remain = left_edge;
+		f32 shift = remain / h_move_val;
+		collection->shift_idx = (int)shift;
+
 		side_ani->from = collection->pos[0];
 		side_ani->to = -(int)(remain / h_move_val) * h_move_val;
 		side_ani->value_pointer = &collection->pos[0];
@@ -80,12 +83,17 @@ void UpdateLocalPosition(ViewScene* scene, SceneNavigator* navigator,
 		side_ani->running = 1;
 	} else if (right_edge > -collection->pos[0] + scene_width) {
 		f32 remain = right_edge - scene_width;
+		f32 shift = remain / h_move_val;
+		collection->shift_idx = (int)shift + 1;
+
 		side_ani->from = collection->pos[0];
 		side_ani->to = -((int)(remain / h_move_val) + 1.0f) * h_move_val;
 		side_ani->value_pointer = &collection->pos[0];
 		side_ani->speed = 7.0f;
 		side_ani->running = 1;
 	}
+
+	printf("shift idx: %d \n", collection->shift_idx);
 
 	if (top_edge > scene->y_nav_pos + scene_height) {
 		f32 remain = bottom_edge - scene_height;
