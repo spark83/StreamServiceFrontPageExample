@@ -26,7 +26,7 @@ typedef struct {
 // This will be used primarly.
 typedef struct {
 	QuadVertex vertices[4];
-	u32 indices[6]; // Only 6 indices
+	u8 indices[6]; // Only 6 indices
 } IndexedQuadMeshData;
 
 // Some generic opengl info stuff to make sure which version to use

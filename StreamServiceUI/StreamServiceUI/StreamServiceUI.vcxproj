@@ -156,6 +156,7 @@ xcopy /y /d "..\..\ThirdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(OutDir)"
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AllocUtils.c" />
     <ClCompile Include="Animation.c" />
     <ClCompile Include="AppWindow.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -181,6 +182,7 @@ xcopy /y /d "..\..\ThirdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(OutDir)"
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="SceneView.c" />
+    <ClCompile Include="StackAllocator.c" />
     <ClCompile Include="Timer.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -193,12 +195,15 @@ xcopy /y /d "..\..\ThirdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(OutDir)"
     <ClInclude Include="CurlHelper.h" />
     <ClInclude Include="DataTypes.h" />
     <ClInclude Include="JsonHelper.h" />
+    <ClInclude Include="LinearAllocator.h" />
     <ClInclude Include="Logging\logger.h" />
     <ClInclude Include="Logging\loggerconf.h" />
+    <ClInclude Include="PoolAllocator.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="DefaultDatas.h" />
     <ClInclude Include="SceneModel.h" />
     <ClInclude Include="SceneView.h" />
+    <ClInclude Include="StackAllocator.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>

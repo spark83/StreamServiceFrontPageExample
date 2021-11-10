@@ -284,6 +284,7 @@ void UpdateNavigationViewScene(GLRenderer* gl_renderer, ViewScene* main_view_sce
 					view_item->scalar = i == 0 ? 1.2f : 1.0f;
 				}
 
+				// TODO: This is bad and slow. Replace this with pool allocator (preallocated).
 				stbi_image_free(item->image_buffer);
 				item->image_buffer = NULL;
 				item->image_loaded = FALSE;

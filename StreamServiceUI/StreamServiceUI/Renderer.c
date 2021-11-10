@@ -8,6 +8,7 @@
 #include <gl\glu.h>
 #include <SDL.h>
 #include <stb_truetype.h>
+#include <stb_image.h>
 #include <cglm/cglm.h>
 
 #include "DefaultDatas.h"
@@ -20,7 +21,7 @@
 extern "C" {
 #endif
 
-static const u32 k_quad_indices[] = { 0, 1, 2, 2, 1, 3 };
+static const u8 k_quad_indices[] = { 0, 1, 2, 2, 1, 3 };
 
 static const QuadVertex k_quad_vtx_data[] = {
 	{.vertex = { -0.5f,  0.5f,  0.0f },
@@ -126,7 +127,7 @@ static IndexedStaticMesh CreateIndexedStaticQuad() {
 	glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(QuadVertex),
 		k_quad_vtx_data, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.mesh_ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(u32),
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(u8),
 		k_quad_indices, GL_STATIC_DRAW);
 
 	// Set vertex attribute pointers
@@ -160,7 +161,7 @@ static void ApplyTileTexture(GLRenderer* renderer, s8 tile_id) {
 
 static void Render(GLRenderer* renderer, IndexedStaticMesh* mesh) {
 	glBindVertexArray(mesh->mesh_vao);
-	glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_BYTE, 0);
 }
 
 static void RenderQuad(GLRenderer* renderer, GLShaderProgram* shader,
@@ -248,7 +249,7 @@ static s32 AppendToTileTexture(GLRenderer* renderer, s8 tile_id, s8* image_buffe
 
 	glBindTexture(GL_TEXTURE_2D, renderer->tile_textures[tile_id].texture_id);
 	// This will linkly stall in the lower end GPU, but this will only be called when new image is being added 
-	// or replaced with another image.  So it won't be reducing the performance much. 
+	// or replaced with another image.  So it won't be reducing the performance much I think? 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, xoffset, yoffset,
 		renderer->tile_textures[tile_id].tile_width, renderer->tile_textures[tile_id].tile_height,
 		GL_RGB, GL_UNSIGNED_BYTE, image_buffer);
@@ -411,6 +412,8 @@ void InitGLRenderer(GLRenderer* renderer, const TextureSize tile_sizes[MAX_TILE_
 		stbtt_BakeFontBitmap(ttf_buffer, 0, 32.0f, temp_bitmap, 512, 512, 32, 96, cdata);
 		glGenTextures(1, &fontid);
 		renderer->font_texture.texture_id = fontid;
+
+		stbi_write_png("font.png", 512, 512, 1, temp_bitmap, 512);
 
 		glBindTexture(GL_TEXTURE_2D, fontid);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, temp_bitmap);
